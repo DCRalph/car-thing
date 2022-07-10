@@ -1,4 +1,5 @@
 import fetch from 'node-fetch'
+import { z } from 'zod'
 
 const TYPE = {
   IP: 1,
@@ -321,6 +322,14 @@ const PAL = {
   Candy2: 70,
 }
 
+if (!Array.prototype.last) {
+  Array.prototype.last = function () {
+    return this[this.length - 1]
+  }
+}
+
+// console.log(Object.values(FX).last())
+
 const ipSend = async (ip, data) => {
   const res = await fetch(`http://${ip}/json/state`, {
     body: JSON.stringify(data),
@@ -328,6 +337,7 @@ const ipSend = async (ip, data) => {
   })
   if (res.status != 200) return false
   const json = await res.json()
+  console.log(json)
   return json
 }
 
@@ -337,8 +347,6 @@ const serialSend = (port, data) => {
 
 class wled {
   constructor(type, x) {
-    this.autoSend = false
-
     this.type = type
     if (this.type === TYPE.IP) {
       this.ip = x
@@ -346,30 +354,32 @@ class wled {
       this.port = new SerialPort({ path: x, baudRate: 9600 })
     }
 
-    this.on = false
-    this.bri = 255
-    this.ps = -1
+    this.state = {
+      on: false,
+      bri: 255,
+      ps: -1,
 
-    this.c1 = [0, 0, 0]
-    this.c2 = [0, 0, 0]
-    this.c3 = [0, 0, 0]
+      c1: [0, 0, 0],
+      c2: [0, 0, 0],
+      c3: [0, 0, 0],
 
-    this.fx = FX.Solid
-    this.sx = 128
-    this.ix = 128
-    this.pal = 0
+      fx: FX.Solid,
+      sx: 128,
+      ix: 128,
+      pal: PAL.Default,
+    }
 
     this.data = {
-      on: this.on,
-      bri: this.bri,
-      ps: this.ps,
+      on: this.state.on,
+      bri: this.state.bri,
+      ps: this.state.ps,
       seg: [
         {
-          col: [this.c1, this.c2, this.c3],
-          fx: this.fx,
-          sx: this.sx,
-          ix: this.ix,
-          pal: this.pal,
+          col: [this.state.c1, this.state.c2, this.state.c3],
+          fx: this.state.fx,
+          sx: this.state.sx,
+          ix: this.state.ix,
+          pal: this.state.pal,
         },
       ],
     }
@@ -377,16 +387,16 @@ class wled {
 
   send() {
     this.data = {
-      on: this.on,
-      bri: this.bri,
-      ps: this.ps,
+      on: this.state.on,
+      bri: this.state.bri,
+      ps: this.state.ps,
       seg: [
         {
-          col: [this.c1, this.c2, this.c3],
-          fx: this.fx,
-          sx: this.sx,
-          ix: this.ix,
-          pal: this.pal,
+          col: [this.state.c1, this.state.c2, this.state.c3],
+          fx: this.state.fx,
+          sx: this.state.sx,
+          ix: this.state.ix,
+          pal: this.state.pal,
         },
       ],
     }
@@ -398,35 +408,102 @@ class wled {
   }
 
   set = {
-    // this.autoSend && this.send()
-    off: () => {
-      this.on = false
+    on: (on) => {
+      try {
+        z.boolean().parse(on)
+      } catch (err) {
+        if (err instanceof z.ZodError) {
+          console.log(err.issues)
+          return
+        }
+      }
+      this.state.on = on
     },
-    on: () => {
-      this.on = true
-    },
-    ps: (ps = this.ps) => {
-      this.ps = ps
+    ps: (ps) => {
+      try {
+        z.number(O).min(-1).parse(ps)
+      } catch (err) {
+        if (err instanceof z.ZodError) {
+          console.log(err.issues)
+          return
+        }
+      }
+      this.state.ps = ps
     },
     bri: (bri = this.bri) => {
-      this.bri = bri
+      try {
+        z.number().min(0).max(255).parse(bri)
+      } catch (err) {
+        if (err instanceof z.ZodError) {
+          console.log(err.issues)
+          return
+        }
+      }
+      this.state.bri = bri
     },
-    col: (c1 = this.c1, c2 = this.c2, c3 = this.c3) => {
-      this.c1 = c1
-      this.c2 = c2
-      this.c3 = c3
+    col: (c1 = this.state.c1, c2 = this.state.c2, c3 = this.state.c3) => {
+      try {
+        let num = z.union(z.number().min(0).max(255))
+        let arr = z.array(num, 3)
+        let schema = z.array(arr, 3)
+        schema.parse([c1, c2, c3])
+      } catch (err) {
+        if (err instanceof z.ZodError) {
+          console.log(err.issues)
+          return
+        }
+      }
+
+      this.state.c1 = c1
+      this.state.c2 = c2
+      this.state.c3 = c3
     },
-    fx: (fx = this.fx) => {
-      this.fx = fx
+    fx: (fx) => {
+      try {
+        z.number().min(0).max(Object.values(FX).last()).parse(fx)
+      } catch (err) {
+        if (err instanceof z.ZodError) {
+          console.log(err.issues)
+          return
+        }
+      }
+
+      this.state.fx = fx
     },
-    sx: (sx = this.sx) => {
-      this.sx = sx
+    sx: (sx) => {
+      try {
+        z.number().min(0).max(255).parse(sx)
+      } catch (err) {
+        if (err instanceof z.ZodError) {
+          console.log(err.issues)
+          return
+        }
+      }
+      this.state.sx = sx
     },
-    ix: (ix = this.ix) => {
-      this.ix = ix
+    ix: (ix) => {
+      try {
+        z.number().min(0).max(255).parse(ix)
+      } catch (err) {
+        if (err instanceof z.ZodError) {
+          console.log(err.issues)
+          return
+        }
+      }
+
+      this.state.ix = ix
     },
-    pal: (pal = this.pal) => {
-      this.pal = pal
+    pal: (pal) => {
+      try {
+        z.number().min(0).max(Object.values(PAL).last()).parse(pal)
+      } catch (err) {
+        if (err instanceof z.ZodError) {
+          console.log(err.issues)
+          return
+        }
+      }
+
+      this.state.pal = pal
     },
   }
 }
