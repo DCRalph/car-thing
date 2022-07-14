@@ -337,7 +337,7 @@ const ipSend = async (ip, data) => {
   })
   if (res.status != 200) return false
   const json = await res.json()
-  console.log(json)
+  // console.log(json)
   return json
 }
 
@@ -354,6 +354,32 @@ class wled {
       this.port = new SerialPort({ path: x, baudRate: 9600 })
     }
 
+    this.reset()
+  }
+
+  send() {
+    this.data = {
+      on: this.state.on,
+      bri: this.state.bri,
+      ps: this.state.ps,
+      seg: [
+        {
+          col: [this.state.c1, this.state.c2, this.state.c3],
+          fx: this.state.fx,
+          sx: this.state.sx,
+          ix: this.state.ix,
+          pal: this.state.pal,
+        },
+      ],
+    }
+    if (this.type == TYPE.IP) {
+      ipSend(this.ip, this.data)
+    } else if (this.type == TYPE.SERIAL) {
+      serialSend(this.port, this.data)
+    }
+  }
+
+  reset() {
     this.state = {
       on: false,
       bri: 255,
@@ -385,126 +411,116 @@ class wled {
     }
   }
 
-  send() {
-    this.data = {
-      on: this.state.on,
-      bri: this.state.bri,
-      ps: this.state.ps,
-      seg: [
-        {
-          col: [this.state.c1, this.state.c2, this.state.c3],
-          fx: this.state.fx,
-          sx: this.state.sx,
-          ix: this.state.ix,
-          pal: this.state.pal,
-        },
-      ],
+  on(on) {
+    try {
+      z.boolean().parse(on)
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        console.log(err.issues)
+        return
+      }
     }
-    if (this.type == TYPE.IP) {
-      ipSend(this.ip, this.data)
-    } else if (this.type == TYPE.SERIAL) {
-      serialSend(this.port, this.data)
+    this.state.on = on
+  }
+  ps(ps) {
+    try {
+      z.number(O).min(-1).parse(ps)
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        console.log(err.issues)
+        return
+      }
     }
+    this.state.ps = ps
+  }
+  bri(bri = this.bri) {
+    try {
+      z.number().min(0).max(255).parse(bri)
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        console.log(err.issues)
+        return
+      }
+    }
+    this.state.bri = bri
+  }
+  col(c1 = this.state.c1, c2 = this.state.c2, c3 = this.state.c3) {
+    try {
+      let num = z.union(z.number().min(0).max(255))
+      let arr = z.array(num, 3)
+      let schema = z.array(arr, 3)
+      schema.parse([c1, c2, c3])
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        console.log(err.issues)
+        return
+      }
+    }
+
+    this.state.c1 = c1
+    this.state.c2 = c2
+    this.state.c3 = c3
+  }
+  fx(fx) {
+    try {
+      z.number().min(0).max(Object.values(FX).last()).parse(fx)
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        console.log(err.issues)
+        return
+      }
+    }
+
+    this.state.fx = fx
+  }
+  sx(sx) {
+    try {
+      z.number().min(0).max(255).parse(sx)
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        console.log(err.issues)
+        return
+      }
+    }
+    this.state.sx = sx
+  }
+  ix(ix) {
+    try {
+      z.number().min(0).max(255).parse(ix)
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        console.log(err.issues)
+        return
+      }
+    }
+
+    this.state.ix = ix
+  }
+  pal(pal) {
+    try {
+      z.number().min(0).max(Object.values(PAL).last()).parse(pal)
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        console.log(err.issues)
+        return
+      }
+    }
+
+    this.state.pal = pal
   }
 
-  set = {
-    on: (on) => {
-      try {
-        z.boolean().parse(on)
-      } catch (err) {
-        if (err instanceof z.ZodError) {
-          console.log(err.issues)
-          return
-        }
-      }
-      this.state.on = on
-    },
-    ps: (ps) => {
-      try {
-        z.number(O).min(-1).parse(ps)
-      } catch (err) {
-        if (err instanceof z.ZodError) {
-          console.log(err.issues)
-          return
-        }
-      }
-      this.state.ps = ps
-    },
-    bri: (bri = this.bri) => {
-      try {
-        z.number().min(0).max(255).parse(bri)
-      } catch (err) {
-        if (err instanceof z.ZodError) {
-          console.log(err.issues)
-          return
-        }
-      }
-      this.state.bri = bri
-    },
-    col: (c1 = this.state.c1, c2 = this.state.c2, c3 = this.state.c3) => {
-      try {
-        let num = z.union(z.number().min(0).max(255))
-        let arr = z.array(num, 3)
-        let schema = z.array(arr, 3)
-        schema.parse([c1, c2, c3])
-      } catch (err) {
-        if (err instanceof z.ZodError) {
-          console.log(err.issues)
-          return
-        }
-      }
+  set(state = {}) {
+    if (typeof state['on'] != 'undefined') this.state.on = state['on']
 
-      this.state.c1 = c1
-      this.state.c2 = c2
-      this.state.c3 = c3
-    },
-    fx: (fx) => {
-      try {
-        z.number().min(0).max(Object.values(FX).last()).parse(fx)
-      } catch (err) {
-        if (err instanceof z.ZodError) {
-          console.log(err.issues)
-          return
-        }
-      }
-
-      this.state.fx = fx
-    },
-    sx: (sx) => {
-      try {
-        z.number().min(0).max(255).parse(sx)
-      } catch (err) {
-        if (err instanceof z.ZodError) {
-          console.log(err.issues)
-          return
-        }
-      }
-      this.state.sx = sx
-    },
-    ix: (ix) => {
-      try {
-        z.number().min(0).max(255).parse(ix)
-      } catch (err) {
-        if (err instanceof z.ZodError) {
-          console.log(err.issues)
-          return
-        }
-      }
-
-      this.state.ix = ix
-    },
-    pal: (pal) => {
-      try {
-        z.number().min(0).max(Object.values(PAL).last()).parse(pal)
-      } catch (err) {
-        if (err instanceof z.ZodError) {
-          console.log(err.issues)
-          return
-        }
-      }
-
-      this.state.pal = pal
-    },
+    if (typeof state['bri'] != 'undefined') this.state.bri = state['bri']
+    if (typeof state['ps'] != 'undefined') this.state.ps = state['ps']
+    if (typeof state['c1'] != 'undefined') this.state.c1 = state['c1']
+    if (typeof state['c2'] != 'undefined') this.state.c2 = state['c2']
+    if (typeof state['c3'] != 'undefined') this.state.c3 = state['c3']
+    if (typeof state['fx'] != 'undefined') this.state.fx = state['fx']
+    if (typeof state['sx'] != 'undefined') this.state.sx = state['sx']
+    if (typeof state['ix'] != 'undefined') this.state.ix = state['ix']
+    if (typeof state['pal'] != 'undefined') this.state.pal = state['pal']
   }
 }
 
