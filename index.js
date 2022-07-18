@@ -60,7 +60,7 @@ class serialPort {
       // this.port.on('data', fn2)
       this.port.on('readable', function () {
         // console.log('Read Data:', port.read());
-        fn2(port.read())
+        fn2(this.port.read())
       })
     }
   }
