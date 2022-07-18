@@ -5,6 +5,7 @@ import { createServer } from 'http'
 import { Server } from 'socket.io'
 
 import { SerialPort } from 'serialport'
+const { ReadlineParser } = require('@serialport/parser-readline')
 
 const PORT = process.env.PORT || 3000
 const ENV = process.env.ENV
@@ -49,6 +50,8 @@ class serialPort {
   constructor() {
     if (ENV === 'prod') {
       this.port = new SerialPort({ path: '/dev/serial0', baudRate: 115200 })
+      this.parser = new ReadlineParser()
+      this.port.pipe(this.parser)
     }
   }
 
@@ -58,10 +61,12 @@ class serialPort {
         fn(data)
       }
       // this.port.on('data', fn2)
-      this.port.on('readable', function () {
-        // console.log('Read Data:', port.read());
-        fn2(this.port.read())
-      })
+      // this.port.on('readable', function () {
+      //   // console.log('Read Data:', port.read());
+      //   fn2(this.port.read())
+      // })
+
+      this.parser.on('data', fn2)
     }
   }
 
