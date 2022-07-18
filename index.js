@@ -102,7 +102,15 @@ class serialPort {
 
 const port = new serialPort()
 
-console.log(port.port)
+await new Promise((res) => {
+  if (ENV === 'prod') {
+    while (port.port.isOpen) {
+      res()
+    }
+  } else {
+    res()
+  }
+})
 
 port.on((data) => {
   //
