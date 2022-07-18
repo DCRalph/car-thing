@@ -54,12 +54,16 @@ class serialPort {
 
   on(fn) {
     if (ENV === 'prod') {
-      this.serial.on('data', fn)
+      const fn2 = (data) => {
+        fn(data)
+      }
+      this.serial.on('data', fn2)
     }
   }
 
   write(data) {
     if (ENV === 'prod') {
+      console.log('serial write', data)
       this.serial.write(data)
     }
   }
