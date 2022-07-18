@@ -57,14 +57,18 @@ class serialPort {
       const fn2 = (data) => {
         fn(data)
       }
-      this.serial.on('data', fn2)
+      // this.serial.on('data', fn2)
+      port.on('readable', function () {
+        // console.log('Read Data:', port.read());
+        fn2(port.read())
+      })
     }
   }
 
   write(data) {
     if (ENV === 'prod') {
       console.log('serial write', data)
-      this.serial.write(data)
+      this.serial.write(data + '\n')
     }
   }
 }
