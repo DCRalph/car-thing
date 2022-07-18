@@ -102,16 +102,6 @@ class serialPort {
 
 const port = new serialPort()
 
-await new Promise((res) => {
-  if (ENV === 'prod') {
-    while (port.port.isOpen) {
-      res()
-    }
-  } else {
-    res()
-  }
-})
-
 port.on((data) => {
   //
 })
@@ -301,4 +291,6 @@ const thing = async () => {
   port.pin(4, false)
 }
 
-thing()
+port.port.on('open', () => {
+  thing()
+})
