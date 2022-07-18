@@ -281,14 +281,15 @@ const thing = async () => {
 
   port.pin(1, true)
   await wait(delay)
-  port.pin(1, false)
   port.pin(2, true)
   await wait(delay)
-  port.pin(2, false)
+  port.pin(1, false)
   port.pin(3, true)
   await wait(delay)
-  port.pin(3, false)
+  port.pin(2, false)
   port.pin(4, true)
+  await wait(delay)
+  port.pin(3, false)
   await wait(delay)
   port.pin(4, false)
 }
