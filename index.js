@@ -50,19 +50,19 @@ class serialPort {
   constructor() {
     this.success = false
     if (ENV === 'prod') {
-      this.port = new SerialPort(
-        { path: '/dev/ttyUSB0', baudRate: 115200 },
-        (err) => {
-          if (err) {
-            return console.log('Error: ', err.message)
-          } else {
-            this.success = true
-            console.log('Connected to port')
-            this.parser = new ReadlineParser()
-            this.port.pipe(this.parser)
-          }
-        }
+      const path = ['/dev/ttyUSB0', '/dev/serial0'].find((x) =>
+        fs.existsSync(x)
       )
+      this.port = new SerialPort({ path: path, baudRate: 115200 }, (err) => {
+        if (err) {
+          return console.log('Error: ', err.message)
+        } else {
+          this.success = true
+          console.log('Connected to port')
+          this.parser = new ReadlineParser()
+          this.port.pipe(this.parser)
+        }
+      })
     }
   }
 
