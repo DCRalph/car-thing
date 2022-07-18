@@ -89,10 +89,11 @@ class serialPort {
     }
   }
 
-  pin(pin) {
+  pin(pin, value) {
     if (ENV === 'prod' && this.success) {
       const payload = {
         pin: pin,
+        value: value,
       }
       this.write(data)
     }
@@ -102,7 +103,7 @@ class serialPort {
 const port = new serialPort()
 
 port.on((data) => {
-  // 
+  //
 })
 
 // led.set(presets.blueBlink)
@@ -270,3 +271,24 @@ io.on('connection', (socket) => {
 let server = httpServer.listen(PORT, () => {
   console.log(server.address())
 })
+
+const thing = async () => {
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+  let delay = 50
+
+  port.pin(1, true)
+  await wait(delay)
+  port.pin(1, false)
+  port.pin(2, true)
+  await wait(delay)
+  port.pin(2, false)
+  port.pin(3, true)
+  await wait(delay)
+  port.pin(3, false)
+  port.pin(4, true)
+  await wait(delay)
+  port.pin(4, false)
+}
+
+thing()
