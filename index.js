@@ -48,7 +48,7 @@ const presets = {
 class serialPort {
   constructor() {
     if (ENV === 'prod') {
-      this.serial = new SerialPort('/dev/serial0', { baudRate: 115200 })
+      this.serial = new SerialPort({ path: '/dev/serial0', baudRate: 115200 })
     }
   }
 
