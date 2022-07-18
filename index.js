@@ -49,6 +49,8 @@ const presets = {
 class serialPort {
   constructor() {
     this.success = false
+    this.fn = null
+
     if (ENV === 'prod') {
       const path = ['/dev/ttyUSB0', '/dev/serial0'].find((x) =>
         fs.existsSync(x)
@@ -61,6 +63,13 @@ class serialPort {
           console.log('Connected to port')
           this.parser = new ReadlineParser()
           this.port.pipe(this.parser)
+
+          this.parser.on('data', (data) => {
+            console.log('[serial in]', data)
+            if (this.fn) {
+              this.fn(data)
+            }
+          })
         }
       })
     }
@@ -68,12 +77,7 @@ class serialPort {
 
   on(fn) {
     if (ENV === 'prod') {
-      // const fn2 = (data) => {
-      //   fn(data)
-      //   console.log('[serial in]', data)
-      // }
-
-      this.parser.on('data', fn)
+      this.fn = fn
     }
   }
 
