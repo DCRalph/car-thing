@@ -68,12 +68,12 @@ class serialPort {
 
   on(fn) {
     if (ENV === 'prod' && this.success) {
-      const fn2 = (data) => {
-        fn(data)
-        console.log('[serial in]', data)
-      }
+      // const fn2 = (data) => {
+      //   fn(data)
+      //   console.log('[serial in]', data)
+      // }
 
-      this.parser.on('data', fn2)
+      this.parser.on('data', fn)
     }
   }
 
@@ -97,7 +97,9 @@ class serialPort {
 
 const port = new serialPort()
 
-port.on((data) => {})
+port.on((data) => {
+  console.log('[serial in]', data)
+})
 
 // led.set(presets.blueBlink)
 // led.send()
