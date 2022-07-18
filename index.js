@@ -45,6 +45,36 @@ const presets = {
   blueBlink: { on: true, bri: 255, fx: FX.Blink, c1: [0, 0, 255] },
 }
 
+class serialPort {
+  constructor() {
+    if (ENV === 'prod') {
+      this.serial = new SerialPort('/dev/serial0', { baudRate: 115200 })
+    }
+  }
+
+  on(fn) {
+    if (ENV === 'prod') {
+      this.serial.on('data', fn)
+    }
+  }
+
+  write(data) {
+    if (ENV === 'prod') {
+      this.serial.write(data)
+    }
+  }
+}
+
+const serial = new serialPort()
+
+serial.on((data) => {
+  console.log('*** data ***')
+  console.log(data)
+  console.log('***')
+})
+
+serial.write(JSON.stringify({ test: 'hello' }))
+
 // led.set(presets.blueBlink)
 // led.send()
 
@@ -159,6 +189,9 @@ io.on('connection', (socket) => {
     }
 
     console.log('radio started')
+
+    serial.write('start radio')
+
     emitData(socket)
   })
 
@@ -173,6 +206,8 @@ io.on('connection', (socket) => {
     }
     radioState.stoping = true
     console.log('stopping radio')
+
+    serial.write('stoping radio')
 
     if (ENV == 'prod') {
       treeKill(radioState.child.pid)
@@ -189,11 +224,13 @@ io.on('connection', (socket) => {
   })
 
   socket.on('update-light', (data) => {
-    if (data.under.preset != 'none') {
+    if (data.under.preset != 'none' && data.under.on) {
       lightState.under.set(presets[data.under.preset])
     } else {
       lightState.under.set({ ...data.under, fx: FX.Solid })
     }
+
+    serial.write('update light')
 
     lightState.under.send()
     emitData(socket)
