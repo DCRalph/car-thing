@@ -4,6 +4,8 @@ import express from 'express'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
 
+import { SerialPort } from 'serialport'
+
 const PORT = process.env.PORT || 3000
 const ENV = process.env.ENV
 
