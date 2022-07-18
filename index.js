@@ -48,7 +48,7 @@ const presets = {
 class serialPort {
   constructor() {
     if (ENV === 'prod') {
-      this.serial = new SerialPort({ path: '/dev/serial0', baudRate: 115200 })
+      this.port = new SerialPort({ path: '/dev/serial0', baudRate: 115200 })
     }
   }
 
@@ -57,8 +57,8 @@ class serialPort {
       const fn2 = (data) => {
         fn(data)
       }
-      // this.serial.on('data', fn2)
-      port.on('readable', function () {
+      // this.port.on('data', fn2)
+      this.port.on('readable', function () {
         // console.log('Read Data:', port.read());
         fn2(port.read())
       })
@@ -68,20 +68,20 @@ class serialPort {
   write(data) {
     if (ENV === 'prod') {
       console.log('serial write', data)
-      this.serial.write(data + '\n')
+      this.port.write(data + '\n')
     }
   }
 }
 
-const serial = new serialPort()
+const port = new serialPort()
 
-serial.on((data) => {
+port.on((data) => {
   console.log('*** data ***')
   console.log(data)
   console.log('***')
 })
 
-serial.write(JSON.stringify({ test: 'hello' }))
+port.write(JSON.stringify({ test: 'hello' }))
 
 // led.set(presets.blueBlink)
 // led.send()
@@ -198,7 +198,7 @@ io.on('connection', (socket) => {
 
     console.log('radio started')
 
-    serial.write('start radio')
+    port.write('start radio')
 
     emitData(socket)
   })
@@ -215,7 +215,7 @@ io.on('connection', (socket) => {
     radioState.stoping = true
     console.log('stopping radio')
 
-    serial.write('stoping radio')
+    port.write('stoping radio')
 
     if (ENV == 'prod') {
       treeKill(radioState.child.pid)
@@ -238,7 +238,7 @@ io.on('connection', (socket) => {
       lightState.under.set({ ...data.under, fx: FX.Solid })
     }
 
-    serial.write('update light')
+    port.write('update light')
 
     lightState.under.send()
     emitData(socket)
