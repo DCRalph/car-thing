@@ -67,7 +67,7 @@ class serialPort {
   }
 
   on(fn) {
-    if (ENV === 'prod' && this.success) {
+    if (ENV === 'prod') {
       // const fn2 = (data) => {
       //   fn(data)
       //   console.log('[serial in]', data)
