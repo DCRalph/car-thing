@@ -1,9 +1,11 @@
+import 'dotenv/config'
+
 import express from 'express'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
 
-const PORT = 80
-const ENV = 'dev'
+const PORT = process.env.PORT || 3000
+const ENV = process.env.ENV
 
 const app = express()
 const httpServer = createServer(app)
