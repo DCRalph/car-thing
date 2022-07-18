@@ -275,7 +275,9 @@ let server = httpServer.listen(PORT, () => {
 const thing = async () => {
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
-  let delay = 50
+  let delay = 100
+
+  await wait(delay)
 
   port.pin(1, true)
   await wait(delay)
