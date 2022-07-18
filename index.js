@@ -95,7 +95,7 @@ class serialPort {
         pin: pin,
         value: value,
       }
-      this.write(data)
+      this.write(payload)
     }
   }
 }
