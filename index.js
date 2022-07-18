@@ -5,7 +5,7 @@ import { createServer } from 'http'
 import { Server } from 'socket.io'
 
 import { SerialPort } from 'serialport'
-const { ReadlineParser } = require('@serialport/parser-readline')
+import { ReadlineParser } from '@serialport/parser-readline'
 
 const PORT = process.env.PORT || 3000
 const ENV = process.env.ENV
