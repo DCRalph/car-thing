@@ -102,7 +102,7 @@ class serialPort {
 const port = new serialPort()
 
 port.on((data) => {
-  console.log('[serial in]', data)
+  // 
 })
 
 // led.set(presets.blueBlink)
