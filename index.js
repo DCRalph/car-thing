@@ -48,45 +48,56 @@ const presets = {
 
 class serialPort {
   constructor() {
+    this.success = false
     if (ENV === 'prod') {
-      this.port = new SerialPort({ path: '/dev/ttyUSB0', baudRate: 115200 })
-      this.parser = new ReadlineParser()
-      this.port.pipe(this.parser)
+      this.port = new SerialPort(
+        { path: '/dev/ttyUSB0', baudRate: 115200 },
+        (err) => {
+          if (err) {
+            return console.log('Error: ', err.message)
+          } else {
+            this.success = true
+            console.log('Connected to port')
+            this.parser = new ReadlineParser()
+            this.port.pipe(this.parser)
+          }
+        }
+      )
     }
   }
 
   on(fn) {
-    if (ENV === 'prod') {
+    if (ENV === 'prod' && this.success) {
       const fn2 = (data) => {
         fn(data)
+        console.log('[serial in]', data)
       }
-      // this.port.on('data', fn2)
-      // this.port.on('readable', function () {
-      //   // console.log('Read Data:', port.read());
-      //   fn2(this.port.read())
-      // })
 
       this.parser.on('data', fn2)
     }
   }
 
   write(data) {
-    if (ENV === 'prod') {
-      console.log('serial write', data)
-      this.port.write(data + '\n')
+    if (ENV === 'prod' && this.success) {
+      const payload = JSON.stringify(data)
+      console.log('[serial out]', data)
+      this.port.write(payload + '\n')
+    }
+  }
+
+  pin(pin) {
+    if (ENV === 'prod' && this.success) {
+      const payload = {
+        pin: pin,
+      }
+      this.write(data)
     }
   }
 }
 
 const port = new serialPort()
 
-port.on((data) => {
-  // console.log('*** data ***')
-  console.log('[serial]', data)
-  // console.log('***')
-})
-
-port.write(JSON.stringify({ test: 'hello' }))
+port.on((data) => {})
 
 // led.set(presets.blueBlink)
 // led.send()
@@ -203,7 +214,7 @@ io.on('connection', (socket) => {
 
     console.log('radio started')
 
-    port.write('start radio')
+    port.write({ 'start radio': true })
 
     emitData(socket)
   })
@@ -220,7 +231,7 @@ io.on('connection', (socket) => {
     radioState.stoping = true
     console.log('stopping radio')
 
-    port.write('stoping radio')
+    port.write({ 'stoping radio': true })
 
     if (ENV == 'prod') {
       treeKill(radioState.child.pid)
@@ -243,7 +254,7 @@ io.on('connection', (socket) => {
       lightState.under.set({ ...data.under, fx: FX.Solid })
     }
 
-    port.write('update light')
+    port.write({ 'update light': true })
 
     lightState.under.send()
     emitData(socket)
