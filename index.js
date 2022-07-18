@@ -81,9 +81,9 @@ class serialPort {
 const port = new serialPort()
 
 port.on((data) => {
-  console.log('*** data ***')
-  console.log(data)
-  console.log('***')
+  // console.log('*** data ***')
+  console.log('[serial]', data)
+  // console.log('***')
 })
 
 port.write(JSON.stringify({ test: 'hello' }))
