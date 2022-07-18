@@ -102,6 +102,8 @@ class serialPort {
 
 const port = new serialPort()
 
+console.log(port.port)
+
 port.on((data) => {
   //
 })
