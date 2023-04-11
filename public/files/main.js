@@ -212,7 +212,6 @@ socket.on('data', (d) => {
   data = d
 
   updateRadioBanner()
-  updateLightRefresh()
 })
 
 socket.on('disconnect', () => {
