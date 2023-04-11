@@ -46,65 +46,65 @@ const presets = {
   blueBlink: { on: true, bri: 255, fx: FX.Blink, c1: [0, 0, 255] },
 }
 
-class serialPort {
-  constructor() {
-    this.success = false
-    this.fn = null
+// class serialPort {
+//   constructor() {
+//     this.success = false
+//     this.fn = null
 
-    if (ENV === 'prod') {
-      const path = ['/dev/ttyUSB0', '/dev/serial0'].find((x) =>
-        fs.existsSync(x)
-      )
-      this.port = new SerialPort({ path: path, baudRate: 115200 }, (err) => {
-        if (err) {
-          return console.log('Error: ', err.message)
-        } else {
-          this.success = true
-          console.log('Connected to port')
-          this.parser = new ReadlineParser()
-          this.port.pipe(this.parser)
+//     if (ENV === 'prod') {
+//       const path = ['/dev/ttyUSB0', '/dev/serial0'].find((x) =>
+//         fs.existsSync(x)
+//       )
+//       this.port = new SerialPort({ path: path, baudRate: 115200 }, (err) => {
+//         if (err) {
+//           return console.log('Error: ', err.message)
+//         } else {
+//           this.success = true
+//           console.log('Connected to port')
+//           this.parser = new ReadlineParser()
+//           this.port.pipe(this.parser)
 
-          this.parser.on('data', (data) => {
-            console.log('[serial in]', data)
-            if (this.fn) {
-              this.fn(data)
-            }
-          })
-        }
-      })
-    }
-  }
+//           this.parser.on('data', (data) => {
+//             console.log('[serial in]', data)
+//             if (this.fn) {
+//               this.fn(data)
+//             }
+//           })
+//         }
+//       })
+//     }
+//   }
 
-  on(fn) {
-    if (ENV === 'prod') {
-      this.fn = fn
-    }
-  }
+//   on(fn) {
+//     if (ENV === 'prod') {
+//       this.fn = fn
+//     }
+//   }
 
-  write(data) {
-    if (ENV === 'prod' && this.success) {
-      const payload = JSON.stringify(data)
-      console.log('[serial out]', data)
-      this.port.write(payload + '\n')
-    }
-  }
+//   write(data) {
+//     if (ENV === 'prod' && this.success) {
+//       const payload = JSON.stringify(data)
+//       console.log('[serial out]', data)
+//       this.port.write(payload + '\n')
+//     }
+//   }
 
-  pin(pin, value) {
-    if (ENV === 'prod' && this.success) {
-      const payload = {
-        pin: pin,
-        value: value,
-      }
-      this.write(payload)
-    }
-  }
-}
+//   pin(pin, value) {
+//     if (ENV === 'prod' && this.success) {
+//       const payload = {
+//         pin: pin,
+//         value: value,
+//       }
+//       this.write(payload)
+//     }
+//   }
+// }
 
-const port = new serialPort()
+// const port = new serialPort()
 
-port.on((data) => {
-  //
-})
+// port.on((data) => {
+//   //
+// })
 
 // led.set(presets.blueBlink)
 // led.send()
@@ -175,17 +175,11 @@ io.on('connection', (socket) => {
     if (radioState.state == true) return
 
     console.log(data)
-    if (data.song == null || data.freq == null) {
-      return
-    }
+    if (data.song == null || data.freq == null) return
 
-    if (music[data.song] == null) {
-      return
-    }
+    if (music[data.song] == null) return
 
-    if (data.freq < 88 || data.freq > 108) {
-      return
-    }
+    if (data.freq < 88 || data.freq > 108) return
 
     const song = music[data.song]
     const freq = data.freq
@@ -221,7 +215,7 @@ io.on('connection', (socket) => {
 
     console.log('radio started')
 
-    port.write({ 'start radio': true })
+    // port.write({ 'start radio': true })
 
     emitData(socket)
   })
@@ -238,7 +232,7 @@ io.on('connection', (socket) => {
     radioState.stoping = true
     console.log('stopping radio')
 
-    port.write({ 'stoping radio': true })
+    // port.write({ 'stoping radio': true })
 
     if (ENV == 'prod') {
       treeKill(radioState.child.pid)
@@ -261,7 +255,7 @@ io.on('connection', (socket) => {
       lightState.under.set({ ...data.under, fx: FX.Solid })
     }
 
-    port.write({ 'update light': true })
+    // port.write({ 'update light': true })
 
     lightState.under.send()
     emitData(socket)
@@ -272,27 +266,27 @@ let server = httpServer.listen(PORT, () => {
   console.log(server.address())
 })
 
-const thing = async () => {
-  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+// const thing = async () => {
+//   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
-  let delay = 100
+//   let delay = 100
 
-  await wait(delay)
+//   await wait(delay)
 
-  port.pin(1, true)
-  await wait(delay)
-  port.pin(2, true)
-  await wait(delay)
-  port.pin(1, false)
-  port.pin(3, true)
-  await wait(delay)
-  port.pin(2, false)
-  port.pin(4, true)
-  await wait(delay)
-  port.pin(3, false)
-  await wait(delay)
-  port.pin(4, false)
-}
+//   port.pin(1, true)
+//   await wait(delay)
+//   port.pin(2, true)
+//   await wait(delay)
+//   port.pin(1, false)
+//   port.pin(3, true)
+//   await wait(delay)
+//   port.pin(2, false)
+//   port.pin(4, true)
+//   await wait(delay)
+//   port.pin(3, false)
+//   await wait(delay)
+//   port.pin(4, false)
+// }
 
 // port.port.on('open', () => {
 //   thing()
