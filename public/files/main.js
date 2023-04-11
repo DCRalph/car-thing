@@ -129,10 +129,6 @@ const radioSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="
 <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
 </svg>`
 
-const lightSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-<path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-</svg>`
-
 const settingsSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -142,7 +138,6 @@ const nav = new navbar()
 
 const home = new tab(nav, 'Home', 'home', homeSvg)
 const radio = new tab(nav, 'Radio', 'radio', radioSvg)
-const light = new tab(nav, 'Light', 'light', lightSvg)
 const settings = new tab(nav, 'Settings', 'settings', settingsSvg)
 
 nav.render()
@@ -160,12 +155,6 @@ const radioName = document.querySelector('#radio-name')
 const radioText = document.querySelector('#radio-text')
 const radioPlay = document.querySelector('#radio-play')
 const radioStop = document.querySelector('#radio-stop')
-
-const lightUnderOn = document.querySelector('#light-under-on')
-const lightUnderC1 = document.querySelector('#light-under-color-c1')
-const lightUnderC2 = document.querySelector('#light-under-color-c2')
-const lightUnderC3 = document.querySelector('#light-under-color-c3')
-const lightUnderPreset = document.querySelector('#light-under-preset')
 
 let data = {}
 
@@ -213,53 +202,6 @@ const playRadio = () => {
   emit('play-radio', { song, freq, name, text })
 }
 
-const updateLightPresets = (presets) => {
-  lightUnderPreset.innerHTML = ''
-  const option = document.createElement('option')
-  option.value = 'none'
-  option.innerText = 'none'
-  lightUnderPreset.appendChild(option)
-  for (const key in presets) {
-    const option = document.createElement('option')
-    option.value = key
-    option.innerText = key
-    lightUnderPreset.appendChild(option)
-  }
-}
-
-const updateLightRefresh = () => {
-  const rgbtohex = (r, g, b) => {
-    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)
-  }
-
-  lightUnderOn.checked = data.light.under.state.on
-  lightUnderC1.value = rgbtohex(...data.light.under.state.c1)
-  lightUnderC2.value = rgbtohex(...data.light.under.state.c2)
-  lightUnderC3.value = rgbtohex(...data.light.under.state.c3)
-}
-
-const updateLight = () => {
-  console.log('updateLight')
-  function hextorgb(hex) {
-    return [
-      ('0x' + hex[1] + hex[2]) | 0,
-      ('0x' + hex[3] + hex[4]) | 0,
-      ('0x' + hex[5] + hex[6]) | 0,
-    ]
-  }
-  const lightData = {
-    under: {
-      on: lightUnderOn.checked,
-      c1: hextorgb(lightUnderC1.value),
-      c2: hextorgb(lightUnderC2.value),
-      c3: hextorgb(lightUnderC3.value),
-      preset: lightUnderPreset.value,
-    },
-  }
-
-  emit('update-light', lightData)
-}
-
 socket.on('connect', () => {
   setConnected(true)
   emit('data')
@@ -282,15 +224,7 @@ fetch('/data')
   .then((d) => {
     console.log(d)
     updateRadioMusic(d.music)
-    updateLightPresets(d.presets)
   })
 
 radioPlay.addEventListener('click', playRadio)
 radioStop.addEventListener('click', () => emit('stop-radio'))
-
-lightUnderOn.addEventListener('click', updateLight)
-lightUnderC1.addEventListener('change', updateLight)
-lightUnderC2.addEventListener('change', updateLight)
-lightUnderC3.addEventListener('change', updateLight)
-
-lightUnderPreset.addEventListener('change', updateLight)
