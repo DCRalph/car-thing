@@ -147,7 +147,7 @@ const settings = new tab(nav, 'Settings', 'settings', settingsSvg)
 
 nav.render()
 
-nav.selectTab('light')
+nav.selectTab('radio')
 
 const radioNotPlaying = document.querySelector('#radio-not-playing')
 const radioPlaying = document.querySelector('#radio-playing')

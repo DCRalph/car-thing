@@ -26,10 +26,10 @@ import treeKill from 'tree-kill'
 
 import { wled, TYPE, FX, PAL } from './wled.js'
 
-const led = new wled(TYPE.IP, '10.123.10.56')
+const led = new wled(TYPE.IP, '10.123.10.224')
 
 const musicDir = './music'
-const pifmrds = '../pifmrds'
+const pifmrds = '../pi_fm_rds'
 
 let music = []
 
@@ -294,6 +294,6 @@ const thing = async () => {
   port.pin(4, false)
 }
 
-port.port.on('open', () => {
-  thing()
-})
+// port.port.on('open', () => {
+//   thing()
+// })
