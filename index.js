@@ -4,9 +4,6 @@ import express from 'express'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
 
-import { SerialPort } from 'serialport'
-import { ReadlineParser } from '@serialport/parser-readline'
-
 const PORT = process.env.PORT || 3000
 const ENV = process.env.ENV
 
@@ -24,10 +21,6 @@ import fs from 'fs'
 import { spawn, exec } from 'child_process'
 import treeKill from 'tree-kill'
 
-import { wled, TYPE, FX, PAL } from './wled.js'
-
-const led = new wled(TYPE.IP, '10.123.10.224')
-
 const musicDir = './music'
 const pifmrds = '../pi_fm_rds'
 
@@ -41,90 +34,15 @@ let radioState = {
   child: null,
 }
 
-const presets = {
-  rgb: { on: true, bri: 255, fx: FX.Rainbow },
-  blueBlink: { on: true, bri: 255, fx: FX.Blink, c1: [0, 0, 255] },
-}
-
-// class serialPort {
-//   constructor() {
-//     this.success = false
-//     this.fn = null
-
-//     if (ENV === 'prod') {
-//       const path = ['/dev/ttyUSB0', '/dev/serial0'].find((x) =>
-//         fs.existsSync(x)
-//       )
-//       this.port = new SerialPort({ path: path, baudRate: 115200 }, (err) => {
-//         if (err) {
-//           return console.log('Error: ', err.message)
-//         } else {
-//           this.success = true
-//           console.log('Connected to port')
-//           this.parser = new ReadlineParser()
-//           this.port.pipe(this.parser)
-
-//           this.parser.on('data', (data) => {
-//             console.log('[serial in]', data)
-//             if (this.fn) {
-//               this.fn(data)
-//             }
-//           })
-//         }
-//       })
-//     }
-//   }
-
-//   on(fn) {
-//     if (ENV === 'prod') {
-//       this.fn = fn
-//     }
-//   }
-
-//   write(data) {
-//     if (ENV === 'prod' && this.success) {
-//       const payload = JSON.stringify(data)
-//       console.log('[serial out]', data)
-//       this.port.write(payload + '\n')
-//     }
-//   }
-
-//   pin(pin, value) {
-//     if (ENV === 'prod' && this.success) {
-//       const payload = {
-//         pin: pin,
-//         value: value,
-//       }
-//       this.write(payload)
-//     }
-//   }
-// }
-
-// const port = new serialPort()
-
-// port.on((data) => {
-//   //
-// })
-
-// led.set(presets.blueBlink)
-// led.send()
-
-let lightState = {
-  under: led,
-}
 const updateMusic = () => {
   music = fs.readdirSync(musicDir)
   music = music.filter((x) => x.endsWith('.wav'))
-  // fs.readdirSync(musicDir).forEach((file) => {
-  //   if (file.endsWith('.wav')) {
-  //     music.push(file)
-  //   }
-  // })
 }
 
 fs.watch(musicDir, (event, file) => {
   updateMusic()
 })
+
 updateMusic()
 
 app.get('/', (req, res) => {
@@ -134,7 +52,6 @@ app.get('/', (req, res) => {
 app.get('/data', (req, res) => {
   res.json({
     music,
-    presets,
   })
 })
 
@@ -161,9 +78,8 @@ const emitData = (socket) => {
       song: radioState.song,
       freq: radioState.freq,
     },
-    light: lightState,
   }
-  io.emit('data', res)
+  socket.emit('data', res)
 }
 
 io.on('connection', (socket) => {
@@ -245,19 +161,6 @@ io.on('connection', (socket) => {
       console.log('radio stopped')
       emitData(socket)
     }
-    emitData(socket)
-  })
-
-  socket.on('update-light', (data) => {
-    if (data.under.preset != 'none' && data.under.on) {
-      lightState.under.set(presets[data.under.preset])
-    } else {
-      lightState.under.set({ ...data.under, fx: FX.Solid })
-    }
-
-    // port.write({ 'update light': true })
-
-    lightState.under.send()
     emitData(socket)
   })
 })
