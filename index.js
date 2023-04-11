@@ -18,7 +18,7 @@ import { dirname } from 'path'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 import fs from 'fs'
-import { spawn, exec } from 'child_process'
+import { spawn } from 'child_process'
 import treeKill from 'tree-kill'
 
 const musicDir = './music'
@@ -131,8 +131,6 @@ io.on('connection', (socket) => {
 
     console.log('radio started')
 
-    // port.write({ 'start radio': true })
-
     emitData(socket)
   })
 
@@ -147,8 +145,6 @@ io.on('connection', (socket) => {
     }
     radioState.stoping = true
     console.log('stopping radio')
-
-    // port.write({ 'stoping radio': true })
 
     if (ENV == 'prod') {
       treeKill(radioState.child.pid)
@@ -168,29 +164,3 @@ io.on('connection', (socket) => {
 let server = httpServer.listen(PORT, () => {
   console.log(server.address())
 })
-
-// const thing = async () => {
-//   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-
-//   let delay = 100
-
-//   await wait(delay)
-
-//   port.pin(1, true)
-//   await wait(delay)
-//   port.pin(2, true)
-//   await wait(delay)
-//   port.pin(1, false)
-//   port.pin(3, true)
-//   await wait(delay)
-//   port.pin(2, false)
-//   port.pin(4, true)
-//   await wait(delay)
-//   port.pin(3, false)
-//   await wait(delay)
-//   port.pin(4, false)
-// }
-
-// port.port.on('open', () => {
-//   thing()
-// })
